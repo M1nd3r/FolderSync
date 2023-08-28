@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,6 +18,7 @@ namespace FolderSync {
             fileRemoved = new LogEventType("File Removed"),
             folderCreated = new LogEventType("Folder Created"),
             folderRemoved = new LogEventType("Folder Removed"),
+            hashingFile = new LogEventType("Getting hash of a file"),
             syncCompleted = new LogEventType("Sync Completed"),
             syncStarted = new LogEventType("Sync Started"),
             unauthorizedAccess = new LogEventType("Unauthorized Access"),
@@ -53,19 +55,47 @@ namespace FolderSync {
                     foldersToSolve.Enqueue(subFolder);
                 }
 
-                var fileNames = Directory.GetFiles(folder.Path);
-                foreach (var fileName in fileNames) {
-                    var info = new FileInfo(fileName);
-                    var myInfo = new FilesInfo(fileName, info.Length);
+                var filesPaths = Directory.GetFiles(folder.Path);
+                foreach (var filePath in filesPaths) {
+                    var info = new FileInfo(filePath);
+                    Log(hashingFile, Path.GetFileName(filePath));
+                    var hash = GetFileHash(filePath);
+                    var myInfo = new FilesInfo(filePath, info.Length, hash);
                     folder.AddFile(myInfo);
                 }
             }
-            var x = test;
 
-            Log(test, "This is a test message.");
+            Log(test, "Scanning completed. Start of comparing.");
+            var (removalListFiles, removalListFolders) = GetDifferenceLists(fromFolder, toFolder);
+            var (addListFiles, addListFolders) = GetDifferenceLists(toFolder, fromFolder);
             Log(syncCompleted);
             isBusy = false;
+        } 
+        public void AddLogListener(EventHandler<LogEventArgs> listener) {
+            log += listener;
         }
+        public bool IsBusy { get => isBusy; }
+
+        private (List<FilesInfo>, List<Folder>) GetDifferenceLists(Folder from, Folder to) {
+            var listFiles = new List<FilesInfo>();
+            var listFolders = new List<Folder>();
+            var compareQueue = new Queue<(Folder, Folder)>();
+            compareQueue.Enqueue((from, to));
+            while (compareQueue.Count>0) {
+                var (f, t) = compareQueue.Dequeue();
+                foreach (var file in t.Files) {
+                    if(!f.ContainsFile(file))
+                        listFiles.Add(file);
+                }
+                foreach (var folder in t.Folders) {
+                    if(!f.ContainsFolder(folder))
+                        listFolders.Add(folder);
+                }
+            }
+            return (listFiles, listFolders);
+        }
+        
+
         private IEnumerable<Folder> TryGetSubfolders(string path) {
             try {
                 return Folder.GetFolders(Directory.GetDirectories(path));
@@ -85,9 +115,11 @@ namespace FolderSync {
         private void Log(LogEventType type) {
             Log(type, "");
         }
-        public void AddLogListener(EventHandler<LogEventArgs> listener) {
-            log += listener;
+        private string GetFileHash(string path) {
+            MD5 md5 = MD5.Create();
+            using (var stream = new FileStream(path, FileMode.Open)) {
+                return BitConverter.ToString(md5.ComputeHash(stream));
+            }
         }
-        public bool IsBusy { get => isBusy; }
     }
 }
