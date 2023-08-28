@@ -21,7 +21,7 @@ namespace FolderSync {
         public void Start() {
             while (!shouldStop) {
                 if (!folderSync.IsBusy && nextSyncTime < DateTime.Now) {
-                    nextSyncTime = DateTime.Now.AddSeconds(intervalSeconds);
+                    nextSyncTime = GetNextSyncTime();
                     folderSync.Start();
                 }
                 Thread.Sleep(500);
@@ -34,6 +34,11 @@ namespace FolderSync {
         public void Dispose() {
             foreach (var logger in loggers)
                 logger.Dispose();
+        }
+        private DateTime GetNextSyncTime() {
+            if (intervalSeconds > 0)
+                return DateTime.Now.AddSeconds(intervalSeconds);
+            return DateTime.MaxValue;
         }
     }
 }

@@ -28,7 +28,7 @@ namespace FolderSync {
         public List<Folder> Folders { get => folders; }
         public List<FilesInfo> Files { get => files; }
         public string Path { get => path; }
-        public string Name { get => path; }
+        public string Name { get => name; }
 
         public bool ContainsFile(FilesInfo file) {
             foreach (var f in files) {

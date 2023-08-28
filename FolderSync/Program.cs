@@ -9,7 +9,7 @@ internal class Program {
     private static int intervalSeconds = -1;
     private const string MSG_SYNTAX = "Syntax is: from to syncIntervalSeconds logFile\n\nExample: C:\\sourceFolder\\ C:\\targetFolder\\ 300 C:\\logfile.txt\n\n syncIntervalSeconds and logFile are optional arguments.";
     private static void Main(string[] args) {
-        args = new string[] { @"C:\Users\Petr\Downloads", @"D:\Windows\plant", "10", @"D:\log.txt" }; //TODO remove
+        args = new string[] { @"C:\Users\Petr\Downloads", @"D:\Windows\plant", "100", @"D:\log.txt" }; //TODO remove
         //args = new string[] { @"C:\", @"D:\Windows\plant", "300" }; //TODO remove
 
         var shouldExit = !HandleInput(args);
@@ -25,7 +25,7 @@ internal class Program {
 
         Console.ReadKey(true);
         syncLoop.Stop();
-        Console.WriteLine("Waiting for pending Sync to finish.");
+        Console.WriteLine("Waiting to safely finish.");
 
         while (t.IsAlive) {
             Thread.Sleep(200);
@@ -37,7 +37,6 @@ internal class Program {
         return t;
     }
     private static IEnumerable<ILogger> GetLoggers() {
-        //var list = new List<ILogger>();
         yield return ConsoleLogger.GetInstance();
         if (logStream == null)
             yield break;
