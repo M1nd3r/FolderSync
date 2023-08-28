@@ -16,6 +16,7 @@ namespace FolderSync {
             fileCopied = new LogEventType("File Copied"),
             fileCreated = new LogEventType("File Created"),
             fileRemoved = new LogEventType("File Removed"),
+            folderCopied = new LogEventType("Folder Copied"),
             folderCreated = new LogEventType("Folder Created"),
             folderRemoved = new LogEventType("Folder Removed"),
             hashingFile = new LogEventType("Getting hash of a file"),
@@ -68,6 +69,12 @@ namespace FolderSync {
             Log(test, "Scanning completed. Start of comparing.");
             var (removalListFiles, removalListFolders) = GetDifferenceLists(fromFolder, toFolder);
             var (addListFiles, addListFolders) = GetDifferenceLists(toFolder, fromFolder);
+
+            RemoveFolders(removalListFolders);
+            RemoveFiles(removalListFiles);
+            CopyFolders(addListFolders, fromFolder, toFolder);
+            CopyFiles(addListFiles, fromFolder, toFolder);
+
             Log(syncCompleted);
             isBusy = false;
         } 
@@ -76,6 +83,35 @@ namespace FolderSync {
         }
         public bool IsBusy { get => isBusy; }
 
+        private void RemoveFolders(IList<Folder> removeListFolders) {
+            foreach (var folder in removeListFolders) {
+                new DirectoryInfo(folder.Path).Delete(true);
+                Log(folderRemoved, String.Format("Previously replicated folder {0} and all its contents were deleted.", folder.Path));
+            }
+        }
+        private void RemoveFiles(IList<FilesInfo> removeListFiles) {
+            foreach (var file in removeListFiles) {
+                File.Delete(file.Path);
+                Log(fileRemoved, String.Format("Previously replicated file {0} was deleted.", file.Path));
+            }
+        }
+        private void CopyFolders(IList<Folder> addListFolders,Folder fromFolder, Folder toFolder) {
+            foreach (var folder in addListFolders) {
+                var newPath = GetNewPath(folder.Path, fromFolder, toFolder);
+                Utils.CopyDirectory(folder.Path, newPath, recursive: true);
+                Log(folderCopied, String.Format("Folder {0} is newly replicated to {1} with all its contents.", folder.Path, newPath));
+            }
+        }
+        private void CopyFiles(IList<FilesInfo> addListFiles, Folder fromFolder, Folder toFolder) {
+            foreach (var file in addListFiles) {
+                var newPath = GetNewPath(file.Path, fromFolder, toFolder);
+                File.Copy(file.Path, newPath);
+                Log(fileCopied, String.Format("File {0} is newly replicated to {1}.", file.Path, newPath));
+            }
+        }
+        private string GetNewPath(string oldPath, Folder fromFolder, Folder toFolder) {
+            return toFolder.Path + (oldPath.Remove(0,fromFolder.Path.Length));
+        }
         private (List<FilesInfo>, List<Folder>) GetDifferenceLists(Folder from, Folder to) {
             var listFiles = new List<FilesInfo>();
             var listFolders = new List<Folder>();
