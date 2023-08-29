@@ -78,7 +78,7 @@ namespace FolderSync {
             foreach (var folder in addListFolders) {
                 var newPath = GetNewPath(folder.Path, fromFolder, toFolder);
                 CopyFolder(folder.Path, newPath);
-                Log(FolderCopied, String.Format("Folder {0} is replicated to {1} with all its contents.", folder.Path, newPath));
+                Log(FolderCopied, String.Format("Folder {0} was succesfully replicated to {1} with all its contents.", folder.Path, newPath));
             }
         }
 

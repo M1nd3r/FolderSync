@@ -38,6 +38,13 @@
             }
             return false;
         }
+        public Folder? GetFolder(string Name) {
+            foreach (var f in folders) {
+                if (f.Name == Name)
+                    return f;
+            }
+            return null;
+        }
         public static IEnumerable<Folder> GetFolders(IEnumerable<string> paths) {
             foreach (string path in paths) {
                 yield return new Folder(path);
