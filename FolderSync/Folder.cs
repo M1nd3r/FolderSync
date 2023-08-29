@@ -1,5 +1,5 @@
 ﻿namespace FolderSync {
-    internal class Folder : IPath {
+    public class Folder : IPath {
         private readonly List<Folder> folders;
         private readonly List<FilesInfo> files;
         private readonly string path;
@@ -7,19 +7,25 @@
         public Folder(string path) {
             folders = new List<Folder>();
             files = new List<FilesInfo>();
-            this.path = path;
+            this.path = path ?? throw new ArgumentNullException(nameof(path));
             this.name = System.IO.Path.GetFileName(path);
         }
-        public void AddFolder(Folder folder) {
+        public void AddSubfolder(Folder folder) {
+            if (path.Contains(folder.Path))
+                throw new ArgumentException(String.Format("Folder {0} is not subfolder of {1} and cannot be added as subfolder",folder.path,this.path));
             folders.Add(folder);
         }
         public void AddFile(FilesInfo file) {
+            if(file==null)
+                throw new ArgumentNullException(nameof(file));
             files.Add(file);
         }
         public void AddFiles(IEnumerable<FilesInfo> files) {
+            if (files == null)
+                throw new ArgumentNullException(nameof(files));
             this.files.AddRange(files);
         }
-        public List<Folder> Folders { get => folders; }
+        public List<Folder> Subfolders { get => folders; }
         public List<FilesInfo> Files { get => files; }
         public string Path { get => path; }
         public string Name { get => name; }
