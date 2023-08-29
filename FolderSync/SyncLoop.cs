@@ -4,15 +4,15 @@ namespace FolderSync {
     internal class SyncLoop {
         private bool shouldStop = false;
         private DateTime nextSyncTime = DateTime.MinValue;
-        private ISync folderSync;
-        private IList<ILogger> loggers;
+        private readonly ISync folderSync;
+        private readonly IList<ILogger> loggers;
         private readonly int intervalSeconds;
         public SyncLoop(int intervalSeconds, ISync sync) {
             this.intervalSeconds = intervalSeconds;
             this.folderSync = sync;
             this.loggers = new List<ILogger>();
         }
-        public void AddLoggers(IEnumerable<ILogger> loggers) { 
+        public void AddLoggers(IEnumerable<ILogger> loggers) {
             foreach (ILogger logger in loggers) {
                 this.loggers.Add(logger);
                 folderSync.AddLogListener(logger.Log);

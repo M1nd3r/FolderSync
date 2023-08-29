@@ -9,8 +9,8 @@ internal class Program {
         if (shouldExit)
             return;
 
-        ISync sync = new Sync(InputHandler.FromPath, InputHandler.ToPath, verboseScanner:true);
-        
+        ISync sync = new Sync(InputHandler.FromPath, InputHandler.ToPath, verboseScanner: true);
+
         var syncLoop = new SyncLoop(InputHandler.IntervalSeconds, sync);
         syncLoop.AddLoggers(CommonLoggers.GetLoggers());
 

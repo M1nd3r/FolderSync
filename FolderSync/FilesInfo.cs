@@ -1,8 +1,8 @@
 ﻿namespace FolderSync {
-    internal class FilesInfo:IPath {
-        private readonly string 
+    internal class FilesInfo : IPath {
+        private readonly string
             hash,
-            name, 
+            name,
             path;
         private readonly long sizeBytes;
         public FilesInfo(string path, long sizeBytes) {
@@ -21,9 +21,9 @@
         public string Name { get => name; }
         public long SizeBytes { get => sizeBytes; }
         public bool IsEqual(FilesInfo other) {
-            if (other == null) 
+            if (other == null)
                 return false;
-            if (other.sizeBytes != this.sizeBytes) 
+            if (other.sizeBytes != this.sizeBytes)
                 return false;
             if (other.hash != this.hash)
                 return false;
