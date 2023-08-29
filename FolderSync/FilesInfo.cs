@@ -5,12 +5,6 @@
             name,
             path;
         private readonly long sizeBytes;
-        public FilesInfo(string path, long sizeBytes) {
-            this.path = path;
-            this.sizeBytes = sizeBytes;
-            this.name = System.IO.Path.GetFileName(path);
-            this.hash = "emptyHash";
-        }
         public FilesInfo(string path, long sizeBytes, string hash) {
             this.path = path;
             this.sizeBytes = sizeBytes;
