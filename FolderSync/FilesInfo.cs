@@ -1,5 +1,5 @@
 ﻿namespace FolderSync {
-    internal class FilesInfo : IPath {
+    public class FilesInfo : IPath {
         private readonly string
             hash,
             name,

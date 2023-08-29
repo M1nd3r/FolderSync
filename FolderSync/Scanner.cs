@@ -37,7 +37,7 @@ namespace FolderSync {
         private void ProcessSubfolders(Folder folder, Queue<Folder> foldersToSolve) {
             var subFolders = GetSubfoldersSafely(folder.Path);
             foreach (var subFolder in subFolders) {
-                folder.AddFolder(subFolder);
+                folder.AddSubfolder(subFolder);
                 foldersToSolve.Enqueue(subFolder);
             }
         }
