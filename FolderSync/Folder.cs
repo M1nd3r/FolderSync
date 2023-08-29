@@ -12,11 +12,11 @@
         }
         public void AddSubfolder(Folder folder) {
             if (path.Contains(folder.Path))
-                throw new ArgumentException(String.Format("Folder {0} is not subfolder of {1} and cannot be added as subfolder",folder.path,this.path));
+                throw new ArgumentException(String.Format("Folder {0} is not subfolder of {1} and cannot be added as subfolder", folder.path, this.path));
             folders.Add(folder);
         }
         public void AddFile(FilesInfo file) {
-            if(file==null)
+            if (file == null)
                 throw new ArgumentNullException(nameof(file));
             files.Add(file);
         }
@@ -51,7 +51,7 @@
             }
             return null;
         }
-        public static IEnumerable<Folder> GetFolders(IEnumerable<string> paths) {
+        public static IEnumerable<Folder> CreateFoldersFromPaths(IEnumerable<string> paths) {
             foreach (string path in paths) {
                 yield return new Folder(path);
             }

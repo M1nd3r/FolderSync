@@ -111,7 +111,7 @@ namespace FolderSync {
         }
         private IEnumerable<Folder> GetSubfoldersSafely(string path) {
             try {
-                return Folder.GetFolders(Directory.GetDirectories(path));
+                return Folder.CreateFoldersFromPaths(Directory.GetDirectories(path));
             }
             catch (UnauthorizedAccessException) {
                 Log(UnauthorizedAccess, String.Format("The folder {0} cannot be scanned or copied!", path));
