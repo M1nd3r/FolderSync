@@ -77,7 +77,7 @@ namespace FolderSync {
 
             Log(syncCompleted);
             isBusy = false;
-        } 
+        }
         public void AddLogListener(EventHandler<LogEventArgs> listener) {
             log += listener;
         }
@@ -95,10 +95,10 @@ namespace FolderSync {
                 Log(fileRemoved, String.Format("Previously replicated file {0} was deleted.", file.Path));
             }
         }
-        private void CopyFolders(IList<Folder> addListFolders,Folder fromFolder, Folder toFolder) {
+        private void CopyFolders(IList<Folder> addListFolders, Folder fromFolder, Folder toFolder) {
             foreach (var folder in addListFolders) {
                 var newPath = GetNewPath(folder.Path, fromFolder, toFolder);
-                Utils.CopyDirectory(folder.Path, newPath, recursive: true);
+                CopyDirectory(folder.Path, newPath);
                 Log(folderCopied, String.Format("Folder {0} is newly replicated to {1} with all its contents.", folder.Path, newPath));
             }
         }
@@ -110,27 +110,26 @@ namespace FolderSync {
             }
         }
         private string GetNewPath(string oldPath, Folder fromFolder, Folder toFolder) {
-            return toFolder.Path + (oldPath.Remove(0,fromFolder.Path.Length));
+            return toFolder.Path + (oldPath.Remove(0, fromFolder.Path.Length));
         }
         private (List<FilesInfo>, List<Folder>) GetDifferenceLists(Folder from, Folder to) {
             var listFiles = new List<FilesInfo>();
             var listFolders = new List<Folder>();
             var compareQueue = new Queue<(Folder, Folder)>();
             compareQueue.Enqueue((from, to));
-            while (compareQueue.Count>0) {
+            while (compareQueue.Count > 0) {
                 var (f, t) = compareQueue.Dequeue();
                 foreach (var file in t.Files) {
-                    if(!f.ContainsFile(file))
+                    if (!f.ContainsFile(file))
                         listFiles.Add(file);
                 }
                 foreach (var folder in t.Folders) {
-                    if(!f.ContainsFolder(folder))
+                    if (!f.ContainsFolder(folder))
                         listFolders.Add(folder);
                 }
             }
             return (listFiles, listFolders);
         }
-        
 
         private IEnumerable<Folder> TryGetSubfolders(string path) {
             try {
@@ -155,6 +154,25 @@ namespace FolderSync {
             MD5 md5 = MD5.Create();
             using (var stream = new FileStream(path, FileMode.Open)) {
                 return BitConverter.ToString(md5.ComputeHash(stream));
+            }
+        }
+        private void CopyDirectory(string source, string target) {
+
+            var dir = new DirectoryInfo(source);
+            if (!dir.Exists)
+                throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            Directory.CreateDirectory(target);
+
+            foreach (FileInfo file in dir.GetFiles()) {
+                string targetFilePath = Path.Combine(target, file.Name);
+                file.CopyTo(targetFilePath);
+            }
+
+            foreach (DirectoryInfo subDir in dirs) {
+                string newDestinationDir = Path.Combine(target, subDir.Name);
+                CopyDirectory(subDir.FullName, newDestinationDir);
             }
         }
     }
