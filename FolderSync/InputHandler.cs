@@ -105,9 +105,7 @@ namespace FolderSync {
             => int.TryParse(interval, out _);
         private static void PrintMissingArguments()
             => Console.WriteLine("Missing mandatory argument(s)\n" + MSG_SYNTAX);
-
         private static void PrintTooManyArguments()
             => Console.WriteLine("Too many arguments\n" + MSG_SYNTAX);
-
     }
 }

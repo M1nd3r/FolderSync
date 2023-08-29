@@ -25,6 +25,8 @@ namespace FolderSync {
                     folderSync.Start();
                 }
                 Thread.Sleep(500);
+                if (intervalSeconds < 1)
+                    shouldStop = true;
             }
             this.Dispose();
         }

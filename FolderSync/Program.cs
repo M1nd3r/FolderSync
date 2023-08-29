@@ -9,25 +9,31 @@ internal class Program {
         if (shouldExit)
             return;
 
-        ISync sync = new Sync(InputHandler.FromPath, InputHandler.ToPath, verboseScanner: true);
-
-        var syncLoop = new SyncLoop(InputHandler.IntervalSeconds, sync);
-        syncLoop.AddLoggers(CommonLoggers.GetLoggers());
-
-        var t = StartLoopOnNewThread(syncLoop);
+        StartSyncLoop(verboseScanner: true);
+    }
+    private static void StartSyncLoop(bool verboseScanner = true) {
+        var syncLoop = GetSyncLoop(verboseScanner);
+        var thread = StartLoopOnNewThread(syncLoop);
 
         Console.ReadKey(true);
-        syncLoop.Stop();
-        Console.WriteLine("Waiting to safely finish.");
-
-        while (t.IsAlive) {
-            Thread.Sleep(200);
-        }
+        StopSyncLoopOnThread(syncLoop, thread);
     }
-
+    private static SyncLoop GetSyncLoop(bool verboseScanner) {
+        ISync sync = new Sync(InputHandler.FromPath, InputHandler.ToPath, verboseScanner);
+        var syncLoop = new SyncLoop(InputHandler.IntervalSeconds, sync);
+        syncLoop.AddLoggers(CommonLoggers.GetLoggers());
+        return syncLoop;
+    }
     private static Thread StartLoopOnNewThread(SyncLoop syncLoop) {
         var t = new Thread(new ThreadStart(syncLoop.Start));
         t.Start();
         return t;
     }
+    private static void StopSyncLoopOnThread(SyncLoop syncLoop,Thread thread) {
+        syncLoop.Stop();
+        Console.WriteLine("Waiting to safely finish.");
+        while (thread.IsAlive)
+            Thread.Sleep(200);
+    }
+
 }

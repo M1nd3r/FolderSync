@@ -2,12 +2,12 @@
 
 namespace FolderSync {
     internal abstract class WithLog {
-        protected event EventHandler<LogEventArgs>? log;
+        private event EventHandler<LogEventArgs>? LogHandler;
         public void AddLogListener(EventHandler<LogEventArgs> listener) {
-            log += listener;
+            LogHandler += listener;
         }
         protected void Log(LogEventType type, string message) {
-            log?.Invoke(this, new LogEventArgs(DateTime.Now, type, message));
+            LogHandler?.Invoke(this, new LogEventArgs(DateTime.Now, type, message));
         }
         protected void Log(LogEventType type) {
             Log(type, "");

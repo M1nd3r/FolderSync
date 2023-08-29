@@ -100,7 +100,6 @@ namespace FolderSync {
                 Log(IoException, String.Format("The folder {0} cannot be scanned or copied! The following error occured: {1}", path, e.Message));
             }
             return new List<Folder>();
-
         }
     }
 }
