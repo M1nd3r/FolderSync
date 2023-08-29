@@ -3,12 +3,9 @@ using FolderSync.Log;
 
 internal class Program {
     private static void Main(string[] args) {
-        args = new string[] { @"C:\Users\Petr\Downloads", @"D:\Windows\plant", "100", @"D:\log.txt" }; //TODO remove
-
         var shouldExit = !InputHandler.HandleInput(args);
         if (shouldExit)
             return;
-
         StartSyncLoop(verboseScanner: true);
     }
     private static void StartSyncLoop(bool verboseScanner = true) {
@@ -29,7 +26,7 @@ internal class Program {
         t.Start();
         return t;
     }
-    private static void StopSyncLoopOnThread(SyncLoop syncLoop,Thread thread) {
+    private static void StopSyncLoopOnThread(SyncLoop syncLoop, Thread thread) {
         syncLoop.Stop();
         Console.WriteLine("Waiting to safely finish.");
         while (thread.IsAlive)
