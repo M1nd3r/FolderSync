@@ -1,24 +1,22 @@
 ﻿using FolderSync;
 using FolderSync.Log;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
+using static FolderSync.Log.CommonLoggers;
 
 internal class Program {
     private static string? fromPath, toPath;
-    private static FileStream? logStream = null;
     private static int intervalSeconds = -1;
     private const string MSG_SYNTAX = "Syntax is: from to syncIntervalSeconds logFile\n\nExample: C:\\sourceFolder\\ C:\\targetFolder\\ 300 C:\\logfile.txt\n\n syncIntervalSeconds and logFile are optional arguments.";
     private static void Main(string[] args) {
         args = new string[] { @"C:\Users\Petr\Downloads", @"D:\Windows\plant", "100", @"D:\log.txt" }; //TODO remove
-        //args = new string[] { @"C:\", @"D:\Windows\plant", "300" }; //TODO remove
 
         var shouldExit = !HandleInput(args);
         if (shouldExit)
             return;
 
-        ISync sync = new Sync(fromPath, toPath);
+        ISync sync = new Sync(fromPath, toPath, verboseScanner:true);
+        var syncLoop = new SyncLoop(intervalSeconds, sync);
 
-        SyncLoop syncLoop = new SyncLoop(intervalSeconds, sync);
+
         syncLoop.AddLoggers(GetLoggers());
 
         var t = StartLoopOnNewThread(syncLoop);
@@ -36,13 +34,7 @@ internal class Program {
         t.Start();
         return t;
     }
-    private static IEnumerable<ILogger> GetLoggers() {
-        yield return ConsoleLogger.GetInstance();
-        if (logStream == null)
-            yield break;
-        FileLogger.Initiate(logStream);
-        yield return FileLogger.GetInstance();
-    }
+
     private static bool HandleInput(string[] args) {
         if (args is null || args.Length < 2) {
             PrintMissingArguments();
@@ -100,11 +92,11 @@ internal class Program {
                 Console.WriteLine("Provided log file is readonly.");
                 return false;
             }
-            logStream = new FileStream(logFilePath, FileMode.Append);
+            CommonLoggers.Initiate(new FileStream(logFilePath, FileMode.Append));
             return true;
         }
         try {
-            logStream = File.Create(logFilePath);
+            CommonLoggers.Initiate(File.Create(logFilePath));
             Console.WriteLine("Log file was created now.");
         }
         catch (UnauthorizedAccessException) {

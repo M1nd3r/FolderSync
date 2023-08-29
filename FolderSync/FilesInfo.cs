@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FolderSync {
-    internal class FilesInfo {
+﻿namespace FolderSync {
+    internal class FilesInfo:IPath {
         private readonly string 
             hash,
             name, 

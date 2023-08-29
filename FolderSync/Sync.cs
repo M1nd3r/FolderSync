@@ -1,178 +1,107 @@
 ﻿using FolderSync.Log;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+using static FolderSync.Log.CommonLogEventTypes;
 
 namespace FolderSync {
-    internal class Sync : ISync {
+    internal class Sync : WithLog, ISync {
         private bool isBusy = false;
-        private event EventHandler<LogEventArgs>? log;
-        private string from, to;
-        private readonly LogEventType
-            test = new LogEventType("Test"),
-            fileCopied = new LogEventType("File Copied"),
-            fileCreated = new LogEventType("File Created"),
-            fileRemoved = new LogEventType("File Removed"),
-            folderCopied = new LogEventType("Folder Copied"),
-            folderCreated = new LogEventType("Folder Created"),
-            folderRemoved = new LogEventType("Folder Removed"),
-            hashingFile = new LogEventType("Getting hash of a file"),
-            syncCompleted = new LogEventType("Sync Completed"),
-            syncStarted = new LogEventType("Sync Started"),
-            unauthorizedAccess = new LogEventType("Unauthorized Access"),
-            ioException = new LogEventType("IO Exception");
+        private Folder from, to;
 
-
-        private Queue<Folder> foldersToSolve;
-
-        public Sync(string? from, string? to) {
+        public Sync(string? from, string? to, bool verboseScanner = false) {
             if (from == null)
                 throw new ArgumentNullException(nameof(from));
             if (to == null)
                 throw new ArgumentNullException(nameof(to));
 
-            this.from = from;
-            this.to = to;
-            this.foldersToSolve = new Queue<Folder>();
+            this.from = new Folder(from);
+            this.to = new Folder(to);
+            this.VerboseScanner = verboseScanner;
         }
         public void Start() {
             isBusy = true;
-            Log(syncStarted);
-            Folder
-                toFolder = new Folder(to),
-                fromFolder = new Folder(from);
+            Log(SyncStarted);
 
-            foldersToSolve.Enqueue(toFolder);
-            foldersToSolve.Enqueue(fromFolder);
+            Scanner scanner = GetScanner(from, to);
 
-            while (foldersToSolve.Count > 0) {
-                var folder = foldersToSolve.Dequeue();
-                var subFolders = TryGetSubfolders(folder.Path);
-                foreach (var subFolder in subFolders) {
-                    folder.AddFolder(subFolder);
-                    foldersToSolve.Enqueue(subFolder);
-                }
+            scanner.Scan();
+            Log(Info, "Scanning completed. Start of copy/removal of files and folders.");
 
-                var filesPaths = Directory.GetFiles(folder.Path);
-                foreach (var filePath in filesPaths) {
-                    var info = new FileInfo(filePath);
-                    Log(hashingFile, Path.GetFileName(filePath));
-                    var hash = GetFileHash(filePath);
-                    var myInfo = new FilesInfo(filePath, info.Length, hash);
-                    folder.AddFile(myInfo);
-                }
-            }
+            var removeFiles = scanner.GetList(Scanner.ScanListType.RemoveFiles);
+            var removeFolders = scanner.GetList(Scanner.ScanListType.RemoveFolders);
+            var addFiles = scanner.GetList(Scanner.ScanListType.AddFiles);
+            var addFolders = scanner.GetList(Scanner.ScanListType.AddFolders);
 
-            Log(test, "Scanning completed. Start of comparing.");
-            var (removalListFiles, removalListFolders) = GetDifferenceLists(fromFolder, toFolder);
-            var (addListFiles, addListFolders) = GetDifferenceLists(toFolder, fromFolder);
+            RemoveFolders(removeFolders);
+            RemoveFiles(removeFiles);
+            CopyFolders(addFolders, from, to);
+            CopyFiles(addFiles, from, to);
 
-            RemoveFolders(removalListFolders);
-            RemoveFiles(removalListFiles);
-            CopyFolders(addListFolders, fromFolder, toFolder);
-            CopyFiles(addListFiles, fromFolder, toFolder);
-
-            Log(syncCompleted);
             isBusy = false;
-        }
-        public void AddLogListener(EventHandler<LogEventArgs> listener) {
-            log += listener;
+            Log(SyncCompleted);
         }
         public bool IsBusy { get => isBusy; }
 
-        private void RemoveFolders(IList<Folder> removeListFolders) {
+        public bool VerboseScanner { get; set; }
+        private Scanner GetScanner(Folder source, Folder target) {
+            var scanner = new Scanner(source, target);
+            if (VerboseScanner)
+                SetScannerVerbose(scanner);
+            return scanner;
+        }
+        private void SetScannerVerbose(Scanner scanner) {
+            var loggers = CommonLoggers.GetLoggers();
+            foreach (ILogger logger in loggers) {
+                scanner.AddLogListener(logger.Log);
+            }
+        }
+        private string GetNewPath(string oldPath, IPath fromFolder, IPath toFolder) {
+            return toFolder.Path + (oldPath.Remove(0, fromFolder.Path.Length));
+        }
+        private void RemoveFolders(IList<IPath> removeListFolders) {
             foreach (var folder in removeListFolders) {
                 new DirectoryInfo(folder.Path).Delete(true);
-                Log(folderRemoved, String.Format("Previously replicated folder {0} and all its contents were deleted.", folder.Path));
+                Log(FolderRemoved, String.Format("Previously replicated folder {0} and all its contents were deleted.", folder.Path));
             }
         }
-        private void RemoveFiles(IList<FilesInfo> removeListFiles) {
+        private void RemoveFiles(IList<IPath> removeListFiles) {
             foreach (var file in removeListFiles) {
                 File.Delete(file.Path);
-                Log(fileRemoved, String.Format("Previously replicated file {0} was deleted.", file.Path));
+                Log(FileRemoved, String.Format("Previously replicated file {0} was deleted.", file.Path));
             }
         }
-        private void CopyFolders(IList<Folder> addListFolders, Folder fromFolder, Folder toFolder) {
-            foreach (var folder in addListFolders) {
-                var newPath = GetNewPath(folder.Path, fromFolder, toFolder);
-                CopyDirectory(folder.Path, newPath);
-                Log(folderCopied, String.Format("Folder {0} is newly replicated to {1} with all its contents.", folder.Path, newPath));
-            }
-        }
-        private void CopyFiles(IList<FilesInfo> addListFiles, Folder fromFolder, Folder toFolder) {
+        private void CopyFiles(IList<IPath> addListFiles, IPath fromFolder, IPath toFolder) {
             foreach (var file in addListFiles) {
                 var newPath = GetNewPath(file.Path, fromFolder, toFolder);
                 File.Copy(file.Path, newPath);
-                Log(fileCopied, String.Format("File {0} is newly replicated to {1}.", file.Path, newPath));
+                Log(FileCopied, String.Format("File {0} is replicated to {1}.", file.Path, newPath));
             }
         }
-        private string GetNewPath(string oldPath, Folder fromFolder, Folder toFolder) {
-            return toFolder.Path + (oldPath.Remove(0, fromFolder.Path.Length));
-        }
-        private (List<FilesInfo>, List<Folder>) GetDifferenceLists(Folder from, Folder to) {
-            var listFiles = new List<FilesInfo>();
-            var listFolders = new List<Folder>();
-            var compareQueue = new Queue<(Folder, Folder)>();
-            compareQueue.Enqueue((from, to));
-            while (compareQueue.Count > 0) {
-                var (f, t) = compareQueue.Dequeue();
-                foreach (var file in t.Files) {
-                    if (!f.ContainsFile(file))
-                        listFiles.Add(file);
-                }
-                foreach (var folder in t.Folders) {
-                    if (!f.ContainsFolder(folder))
-                        listFolders.Add(folder);
-                }
+        private void CopyFolders(IList<IPath> addListFolders, IPath fromFolder, IPath toFolder) {
+            foreach (var folder in addListFolders) {
+                var newPath = GetNewPath(folder.Path, fromFolder, toFolder);
+                CopyFolder(folder.Path, newPath);
+                Log(FolderCopied, String.Format("Folder {0} is replicated to {1} with all its contents.", folder.Path, newPath));
             }
-            return (listFiles, listFolders);
         }
 
-        private IEnumerable<Folder> TryGetSubfolders(string path) {
-            try {
-                return Folder.GetFolders(Directory.GetDirectories(path));
-            }
-            catch (UnauthorizedAccessException) {
-                Log(unauthorizedAccess, String.Format("The folder {0} cannot be scanned or copied!", path));
-            }
-            catch (IOException e) {
-                Log(ioException, String.Format("The folder {0} cannot be scanned or copied! The following error occured: {1}", path, e.Message));
-            }
-            return new List<Folder>();
+        private void CopyFolder(string sourcePath, string targetPath) {
 
-        }
-        private void Log(LogEventType type, string message) {
-            log?.Invoke(this, new LogEventArgs(DateTime.Now, type, message));
-        }
-        private void Log(LogEventType type) {
-            Log(type, "");
-        }
-        private string GetFileHash(string path) {
-            MD5 md5 = MD5.Create();
-            using (var stream = new FileStream(path, FileMode.Open)) {
-                return BitConverter.ToString(md5.ComputeHash(stream));
-            }
-        }
-        private void CopyDirectory(string source, string target) {
-
-            var dir = new DirectoryInfo(source);
+            var dir = new DirectoryInfo(sourcePath);
             if (!dir.Exists)
                 throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
 
             DirectoryInfo[] dirs = dir.GetDirectories();
-            Directory.CreateDirectory(target);
-
+            Directory.CreateDirectory(targetPath);
+            Log(FolderCreated, String.Format("Folder {0} is created.", targetPath));
+            Log(FolderCopied, String.Format("Folder {0} is being replicated to {1} with all its contents.", sourcePath, targetPath));
             foreach (FileInfo file in dir.GetFiles()) {
-                string targetFilePath = Path.Combine(target, file.Name);
+                string targetFilePath = Path.Combine(targetPath, file.Name);
                 file.CopyTo(targetFilePath);
+                Log(FileCopied, String.Format("File {0} is copied.", targetFilePath));
             }
 
             foreach (DirectoryInfo subDir in dirs) {
-                string newDestinationDir = Path.Combine(target, subDir.Name);
-                CopyDirectory(subDir.FullName, newDestinationDir);
+                string newDestinationDir = Path.Combine(targetPath, subDir.Name);
+                CopyFolder(subDir.FullName, newDestinationDir);
             }
         }
     }
