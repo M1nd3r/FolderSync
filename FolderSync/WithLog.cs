@@ -1,7 +1,7 @@
 ﻿using FolderSync.Log;
 
 namespace FolderSync {
-    internal abstract class WithLog {
+    public abstract class WithLog {
         private event EventHandler<LogEventArgs>? LogHandler;
         public void AddLogListener(EventHandler<LogEventArgs> listener) {
             LogHandler += listener;
