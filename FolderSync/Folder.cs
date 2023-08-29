@@ -5,11 +5,9 @@
         private readonly string path;
         private readonly string name;
         public Folder(string path) {
-            if(path == null) 
-                throw new ArgumentNullException(nameof(path));
             folders = new List<Folder>();
             files = new List<FilesInfo>();
-            this.path = path;
+            this.path = path ?? throw new ArgumentNullException(nameof(path));
             this.name = System.IO.Path.GetFileName(path);
         }
         public void AddSubfolder(Folder folder) {
@@ -18,12 +16,16 @@
             folders.Add(folder);
         }
         public void AddFile(FilesInfo file) {
+            if(file==null)
+                throw new ArgumentNullException(nameof(file));
             files.Add(file);
         }
         public void AddFiles(IEnumerable<FilesInfo> files) {
+            if (files == null)
+                throw new ArgumentNullException(nameof(files));
             this.files.AddRange(files);
         }
-        public List<Folder> Folders { get => folders; }
+        public List<Folder> Subfolders { get => folders; }
         public List<FilesInfo> Files { get => files; }
         public string Path { get => path; }
         public string Name { get => name; }

@@ -6,8 +6,8 @@
             path;
         private readonly long sizeBytes;
         public FilesInfo(string path, long sizeBytes, string hash) {
-            this.path = path;
-            this.sizeBytes = sizeBytes;
+            this.path = path??throw new ArgumentNullException(nameof(path));
+            this.sizeBytes = (sizeBytes >= 0) ? sizeBytes : throw new ArgumentOutOfRangeException(nameof(sizeBytes));
             this.name = System.IO.Path.GetFileName(path);
             this.hash = hash;
         }

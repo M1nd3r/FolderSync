@@ -94,7 +94,7 @@ namespace FolderSync {
             }
         }
         private static void CompareFolders(Folder source, Folder target, ref List<IPath> listFolders, ref Queue<(Folder, Folder)> compareQueue) {
-            foreach (var folder in target.Folders) {
+            foreach (var folder in target.Subfolders) {
                 if (!source.ContainsFolder(folder))
                     listFolders.Add(folder);
                 else {
