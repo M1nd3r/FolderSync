@@ -5,7 +5,6 @@ namespace FolderSync {
     internal class Sync : WithLog, ISync {
         private bool isBusy = false;
         private Folder from, to;
-
         public Sync(string? from, string? to, bool verboseScanner = false) {
             if (from == null)
                 throw new ArgumentNullException(nameof(from));
