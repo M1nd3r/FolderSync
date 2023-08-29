@@ -4,7 +4,7 @@ using static FolderSync.Log.CommonLogEventTypes;
 namespace FolderSync {
     internal class Sync : WithLog, ISync {
         private bool isBusy = false;
-        private Folder from, to;
+        private readonly Folder from, to;
         public Sync(string? from, string? to, bool verboseScanner = false) {
             if (from == null)
                 throw new ArgumentNullException(nameof(from));
@@ -46,13 +46,13 @@ namespace FolderSync {
                 SetScannerVerbose(scanner);
             return scanner;
         }
-        private void SetScannerVerbose(Scanner scanner) {
+        private static void SetScannerVerbose(Scanner scanner) {
             var loggers = CommonLoggers.GetLoggers();
             foreach (ILogger logger in loggers) {
                 scanner.AddLogListener(logger.Log);
             }
         }
-        private string GetNewPath(string oldPath, IPath fromFolder, IPath toFolder) {
+        private static string GetNewPath(string oldPath, IPath fromFolder, IPath toFolder) {
             return toFolder.Path + (oldPath.Remove(0, fromFolder.Path.Length));
         }
         private void RemoveFolders(IList<IPath> removeListFolders) {

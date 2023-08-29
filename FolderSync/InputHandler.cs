@@ -3,11 +3,11 @@
 namespace FolderSync {
     internal static class InputHandler {
         private const string MSG_SYNTAX = "Syntax is: from to syncIntervalSeconds logFile\n\nExample: C:\\sourceFolder\\ C:\\targetFolder\\ 300 C:\\logfile.txt\n\n syncIntervalSeconds and logFile are optional arguments.";
-        private static string fromPath, toPath;
+        private static string? fromPath, toPath;
         private static int intervalSeconds = -1;
         public static int IntervalSeconds { get => intervalSeconds; }
-        public static string FromPath { get => fromPath; }
-        public static string ToPath { get => toPath; }
+        public static string? FromPath { get => fromPath; }
+        public static string? ToPath { get => toPath; }
         public static bool HandleInput(string[] args) {
             if (!VerifyArgumentsCount(args))
                 return false;

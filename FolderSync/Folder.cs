@@ -1,7 +1,7 @@
 ﻿namespace FolderSync {
-    internal class Folder:IPath {
-        private List<Folder> folders;
-        private List<FilesInfo> files;
+    internal class Folder : IPath {
+        private readonly List<Folder> folders;
+        private readonly List<FilesInfo> files;
         private readonly string path;
         private readonly string name;
         public Folder(string path) {
@@ -32,8 +32,8 @@
             return false;
         }
         public bool ContainsFolder(Folder folder) {
-            foreach (var f in folders) { 
-                if(f.Name==folder.Name) 
+            foreach (var f in folders) {
+                if (f.Name == folder.Name)
                     return true;
             }
             return false;

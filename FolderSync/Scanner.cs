@@ -2,7 +2,7 @@
 using static FolderSync.Log.CommonLogEventTypes;
 
 namespace FolderSync {
-    internal class Scanner:WithLog {
+    internal class Scanner : WithLog {
         private Folder source, target;
         private IList<IPath>
             addListFiles,
@@ -52,7 +52,7 @@ namespace FolderSync {
                 case ScanListType.AddFiles:
                     return addListFiles;
                 case ScanListType.AddFolders:
-                    return addListFolders; 
+                    return addListFolders;
                 case ScanListType.RemoveFiles:
                     return removalListFiles;
                 case ScanListType.RemoveFolders:
@@ -62,7 +62,7 @@ namespace FolderSync {
             }
         }
         public enum ScanListType {
-            AddFiles,AddFolders,RemoveFiles,RemoveFolders
+            AddFiles, AddFolders, RemoveFiles, RemoveFolders
         }
 
         private (List<IPath>, List<IPath>) GetDifferenceLists(Folder from, Folder to) {
