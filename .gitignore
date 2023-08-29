@@ -360,4 +360,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Project specific files
 FolderSync/Properties/launchSettings.json
