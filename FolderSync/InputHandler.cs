@@ -1,7 +1,7 @@
 ﻿using FolderSync.Log;
 
 namespace FolderSync {
-    internal static class InputHandler {
+    public static class InputHandler {
         private const string MSG_SYNTAX = "Syntax is: \"From\" \"To\" \"SyncIntervalSeconds\" \"logFile\"\n\nExample: C:\\sourceFolder\\ C:\\targetFolder\\ 300 C:\\logfile.txt\n\nSyncIntervalSeconds and logFile are optional arguments. It is possible to add one or both. If both optional arguments are entered, the order must be preserved.";
         private static string? fromPath, toPath;
         private static int intervalSeconds = -1;
@@ -15,7 +15,7 @@ namespace FolderSync {
             if (!HandleMandatoryArguments(args))
                 return false;
 
-            if(args.Length == 2)
+            if (args.Length == 2)
                 return true;
 
             if (args.Length == 3)
@@ -87,6 +87,10 @@ namespace FolderSync {
             }
             catch (UnauthorizedAccessException) {
                 Console.WriteLine("Log file cannot be created - Unauthorized Access.");
+                return false;
+            }
+            catch (ArgumentException e) {
+                Console.WriteLine("Log file path is invalid: {0}", e.Message);
                 return false;
             }
             return true;
