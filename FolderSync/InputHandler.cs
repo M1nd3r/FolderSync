@@ -15,10 +15,13 @@ namespace FolderSync {
             if (!HandleMandatoryArguments(args))
                 return false;
 
-            if (args.Length == 4)
-                return HandleFourArguments(args);
+            if(args.Length == 2)
+                return true;
 
-            return HandleThreeArguments(args);
+            if (args.Length == 3)
+                return HandleThreeArguments(args);
+
+            return HandleFourArguments(args);
         }
         private static bool VerifyArgumentsCount(string[] args) {
             if (args is null || args.Length < 2) {
