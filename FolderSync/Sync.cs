@@ -6,13 +6,8 @@ namespace FolderSync {
         private bool isBusy = false;
         private readonly Folder from, to;
         public Sync(string? from, string? to, bool verboseScanner = false) {
-            if (from == null)
-                throw new ArgumentNullException(nameof(from));
-            if (to == null)
-                throw new ArgumentNullException(nameof(to));
-
-            this.from = new Folder(from);
-            this.to = new Folder(to);
+            this.from = new Folder(from) ?? throw new ArgumentNullException(nameof(from));
+            this.to = new Folder(to) ?? throw new ArgumentNullException(nameof(to));
             this.VerboseScanner = verboseScanner;
         }
         public void Start() {
