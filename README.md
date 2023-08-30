@@ -15,5 +15,8 @@ There are 4 allowed ways (orders) to pass arguments:
 - **From** **To** **LogFile**
 - **From** **To** **SyncIntervalSeconds** **LogFile**
 
+## Exit
+The synchronization loop can be stopped by pressing any key. The program will wait until the end of (possible) pending sync and exit afterwards.
+
 ## Author
 Created by Petr Sedláček in 2023.
