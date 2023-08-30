@@ -3,22 +3,18 @@
 namespace FolderSyncTests {
 
     [TestClass]
-    public class WithLogTests
-    {
-        private static WithLog mockWithLog = new MockWithLog();
+    public class WithLogTests {
+        private readonly static WithLog mockWithLog = new MockWithLog();
 
-        public class MockWithLog : WithLog
-        {
+        public class MockWithLog : WithLog {
         }
         [TestMethod]
-        public void CreateMockWithLogTest()
-        {
+        public void CreateMockWithLogTest() {
             var withLog = new MockWithLog();
             Assert.IsNotNull(withLog);
         }
         [TestMethod]
-        public void WithLogAddNullListenerTest()
-        {
+        public void WithLogAddNullListenerTest() {
             Assert.ThrowsException<ArgumentNullException>(() => { mockWithLog.AddLogListener(null!); });
         }
     }

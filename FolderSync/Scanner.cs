@@ -42,9 +42,10 @@ namespace FolderSync {
             }
         }
         private void ProcessFilesInFolder(Folder folder) {
-            if (!TryGetFilesPaths(folder.Path, out var filePaths))
+            if (!TryGetFilesPaths(folder.Path, out var filesPaths))
                 return;
-            var filesPaths = Directory.GetFiles(folder.Path);
+            if (filesPaths == null)
+                return;
             foreach (var filePath in filesPaths)
                 ScanAndAddFileToFolder(filePath, folder);
         }
