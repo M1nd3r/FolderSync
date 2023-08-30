@@ -3,7 +3,7 @@
 namespace FolderSyncTests {
     [TestClass]
     public class InputHandlerTests {
-        private static string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        private static readonly string baseDir = AppDomain.CurrentDomain.BaseDirectory;
         [TestMethod]
         public void InputHandlerNullArgumentsTest() {
             Assert.IsFalse(InputHandler.HandleInput(null!));

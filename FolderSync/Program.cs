@@ -32,5 +32,4 @@ internal class Program {
         while (thread.IsAlive)
             Thread.Sleep(200);
     }
-
 }
