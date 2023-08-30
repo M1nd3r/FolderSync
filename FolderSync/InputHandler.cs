@@ -2,7 +2,7 @@
 
 namespace FolderSync {
     public static class InputHandler {
-        private const string MSG_SYNTAX = "Syntax is: \"From\" \"To\" \"SyncIntervalSeconds\" \"logFile\"\n\nExample: C:\\sourceFolder\\ C:\\targetFolder\\ 300 C:\\logfile.txt\n\nSyncIntervalSeconds and logFile are optional arguments. It is possible to add one or both. If both optional arguments are entered, the order must be preserved.";
+        private const string MSG_SYNTAX = "Syntax is: \"From\" \"To\" \"SyncIntervalSeconds\" \"LogFile\"\n\nExample: C:\\sourceFolder\\ C:\\targetFolder\\ 300 C:\\logfile.txt\n\nSyncIntervalSeconds and logFile are optional arguments. It is possible to add one or both. If both optional arguments are entered, the order must be preserved.";
         private static string? fromPath, toPath;
         private static int intervalSeconds = -1;
         public static int IntervalSeconds { get => intervalSeconds; }
@@ -40,8 +40,10 @@ namespace FolderSync {
             return HandleToFolder(args[1]);
         }
         private static bool HandleFourArguments(string[] args) {
-            if (!IsInterval(args[2]))
+            if (!IsInterval(args[2])) {
+                Console.WriteLine("Invalid SyncIntervalSeconds argument.");
                 return false;
+            }
             AssignInterval(args[2]);
             return HandleLogFile(args[3]);
         }
